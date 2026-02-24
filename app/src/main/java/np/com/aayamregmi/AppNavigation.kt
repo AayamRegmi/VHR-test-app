@@ -7,16 +7,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 // All screen composables
-import np.com.aayamregmi.Screens.credential.LoginScreen
-import np.com.aayamregmi.Screens.credential.RegisterScreen
-import np.com.aayamregmi.Screens.home.DashboardScreen
-import np.com.aayamregmi.Screens.home.ProfileScreen
-import np.com.aayamregmi.Screens.tests.ColorBlindTestScreen
-import np.com.aayamregmi.Screens.tests.HearingTestScreen
-import np.com.aayamregmi.Screens.tests.LeaderBoardScreen
-import np.com.aayamregmi.Screens.tests.ReflexTestScreen
-
-import np.com.aayamregmi.Routes
+import np.com.aayamregmi.screens.credential.LoginScreen
+import np.com.aayamregmi.screens.credential.RegisterScreen
+import np.com.aayamregmi.screens.home.DashboardScreen
+import np.com.aayamregmi.screens.home.ProfileScreen
+import np.com.aayamregmi.screens.tests.ColorBlindTestScreen
+import np.com.aayamregmi.screens.tests.HearingTestScreen
+import np.com.aayamregmi.screens.tests.LeaderBoardScreen
+import np.com.aayamregmi.screens.tests.ReflexTestScreen
 
 @Composable
 fun AppNavigation() {
