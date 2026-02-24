@@ -85,5 +85,21 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate(Routes.DASHBOARD) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                },
+                onGoToRegister = { navController.navigate(Routes.REGISTER) },
+                onGuestContinue = {
+                    navController.navigate(Routes.DASHBOARD) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }

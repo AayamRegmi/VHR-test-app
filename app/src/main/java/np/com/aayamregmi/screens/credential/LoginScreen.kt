@@ -1,18 +1,22 @@
 package np.com.aayamregmi.screens.credential
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onGoToRegister: () -> Unit
+    onGoToRegister: () -> Unit,
+    onGuestContinue: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -64,6 +68,18 @@ fun LoginScreen(
         TextButton(onClick = onGoToRegister) {
             Text("Don't have an account? Register")
         }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Small clickable guest text
+        Text(
+            text = "Continue as guest",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .clickable(onClick = onGuestContinue)
+                .padding(8.dp)
+        )
     }
 }
 
