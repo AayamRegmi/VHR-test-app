@@ -1,4 +1,4 @@
-package np.com.aayamregmi.Screens.tests
+package np.com.aayamregmi.screens.tests
 
 import androidx.compose.runtime.Composable
 

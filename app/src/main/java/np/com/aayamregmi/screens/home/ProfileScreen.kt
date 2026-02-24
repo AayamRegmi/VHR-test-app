@@ -1,4 +1,4 @@
-package np.com.aayamregmi.Screens.home
+package np.com.aayamregmi.screens.home
 
 import androidx.compose.runtime.Composable
 
