@@ -1,11 +1,13 @@
-package np.com.aayamregmi.Screens.credential
+package np.com.aayamregmi.screens.credential
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun LoginScreen(
@@ -62,5 +64,16 @@ fun LoginScreen(
         TextButton(onClick = onGoToRegister) {
             Text("Don't have an account? Register")
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    MaterialTheme {
+        LoginScreen(
+            onLoginSuccess = {},
+            onGoToRegister = {}
+        )
     }
 }
