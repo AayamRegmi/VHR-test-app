@@ -76,7 +76,7 @@ fun AppNavigation() {
 
         composable(Routes.REFLEX) {
             ReflexTestScreen(
-                onFinish = { navController.popBackStack() }
+                onBack = { navController.popBackStack() }
             )
         }
 

@@ -114,17 +114,6 @@ fun ColorBlindTestScreen(
     }
 }
 
-@Composable
-fun AsyncImage(
-    model: String,
-    contentDescription: String,
-    modifier: Modifier,
-    contentScale: ContentScale,
-    alignment: Alignment
-) {
-    TODO("Not yet implemented")
-}
-
 // ───────────────────────────────────────────────
 // Previews
 // ───────────────────────────────────────────────
