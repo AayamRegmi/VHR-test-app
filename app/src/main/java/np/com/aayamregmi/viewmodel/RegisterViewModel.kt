@@ -1,10 +1,15 @@
 package np.com.aayamregmi.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import np.com.aayamregmi.database.AppDatabase
+import np.com.aayamregmi.database.entity.UserEntity
 
 data class RegisterUiState(
     val fullName: String = "",
@@ -16,7 +21,9 @@ data class RegisterUiState(
     val isRegisterSuccess: Boolean = false
 )
 
-class RegisterViewModel : ViewModel() {
+class RegisterViewModel(app: Application) : AndroidViewModel(app) {
+
+    private val userDao = AppDatabase.getInstance(app).userDao()
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -48,8 +55,29 @@ class RegisterViewModel : ViewModel() {
 
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-        // TODO: replace with actual auth call
-        _uiState.update { it.copy(isLoading = false, isRegisterSuccess = true) }
+        val nameParts = state.fullName.trim().split(" ", limit = 2)
+        val firstName = nameParts[0]
+        val lastName = if (nameParts.size > 1) nameParts[1] else ""
+
+        viewModelScope.launch {
+            try {
+                userDao.insert(
+                    UserEntity(
+                        firstname = firstName,
+                        lastname = lastName,
+                        email = state.email.trim(),
+                        password = state.password
+                    )
+                )
+                _uiState.update { it.copy(isLoading = false, isRegisterSuccess = true) }
+            } catch (e: Exception) {
+                val message = if (e.message?.contains("UNIQUE") == true)
+                    "An account with that email already exists"
+                else
+                    "Registration failed, please try again"
+                _uiState.update { it.copy(isLoading = false, errorMessage = message) }
+            }
+        }
     }
 
     fun onRegisterHandled() {
@@ -61,7 +89,7 @@ class RegisterViewModel : ViewModel() {
         if (state.email.isBlank()) return "Email is required"
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) return "Enter a valid email"
         if (state.password.isBlank()) return "Password is required"
-        if (state.password.length < 6) return "Password must be at least 6 characters"
+        if (state.password.length < 3) return "Password must be at least 3 characters"
         if (state.password != state.confirmPassword) return "Passwords do not match"
         return null
     }
