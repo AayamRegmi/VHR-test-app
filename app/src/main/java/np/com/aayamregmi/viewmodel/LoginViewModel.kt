@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import np.com.aayamregmi.database.AppDatabase
+import np.com.aayamregmi.session.SessionManager
 
 data class LoginUiState(
     val email: String = "",
@@ -50,8 +51,10 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
                     _uiState.update { it.copy(isLoading = false, errorMessage = "No account found with that email") }
                 user.password != state.password ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = "Incorrect password") }
-                else ->
+                else -> {
+                    SessionManager.loggedInUserId = user.uid
                     _uiState.update { it.copy(isLoading = false, isLoginSuccess = true) }
+                }
             }
         }
     }

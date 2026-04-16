@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import np.com.aayamregmi.database.AppDatabase
 import np.com.aayamregmi.database.entity.UserEntity
+import np.com.aayamregmi.session.SessionManager
 
 data class RegisterUiState(
     val fullName: String = "",
@@ -61,7 +62,7 @@ class RegisterViewModel(app: Application) : AndroidViewModel(app) {
 
         viewModelScope.launch {
             try {
-                userDao.insert(
+                val uid = userDao.insert(
                     UserEntity(
                         firstname = firstName,
                         lastname = lastName,
@@ -69,6 +70,7 @@ class RegisterViewModel(app: Application) : AndroidViewModel(app) {
                         password = state.password
                     )
                 )
+                SessionManager.loggedInUserId = uid.toInt()
                 _uiState.update { it.copy(isLoading = false, isRegisterSuccess = true) }
             } catch (e: Exception) {
                 val message = if (e.message?.contains("UNIQUE") == true)
