@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import np.com.aayamregmi.database.dao.LeaderboardDao
 import np.com.aayamregmi.database.dao.TestResultDao
 import np.com.aayamregmi.database.dao.UserDao
@@ -13,6 +14,7 @@ import np.com.aayamregmi.database.entity.LeaderboardEntity
 import np.com.aayamregmi.database.entity.TestResultEntity
 import np.com.aayamregmi.database.entity.TestType
 import np.com.aayamregmi.database.entity.UserEntity
+import np.com.aayamregmi.security.PasswordUtils
 
 class TestTypeConverter {
     @TypeConverter
@@ -28,7 +30,7 @@ class TestTypeConverter {
         TestResultEntity::class,
         LeaderboardEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(TestTypeConverter::class)
@@ -48,8 +50,22 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "vhr_database"
-                ).build().also { INSTANCE = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .addCallback(SeedCallback())
+                    .build()
+                    .also { INSTANCE = it }
             }
+        }
+    }
+
+    private class SeedCallback : RoomDatabase.Callback() {
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            val hash = PasswordUtils.hash("123456")
+            db.execSQL(
+                "INSERT INTO users (firstname, lastname, middlename, email, password) VALUES (?, ?, NULL, ?, ?)",
+                arrayOf("Aayam", "Regmi", "aayam.regmi2003@gmail.com", hash)
+            )
         }
     }
 }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import np.com.aayamregmi.database.AppDatabase
 import np.com.aayamregmi.database.entity.UserEntity
+import np.com.aayamregmi.security.PasswordUtils
 import np.com.aayamregmi.session.SessionManager
 
 data class RegisterUiState(
@@ -25,6 +26,7 @@ data class RegisterUiState(
 class RegisterViewModel(app: Application) : AndroidViewModel(app) {
 
     private val userDao = AppDatabase.getInstance(app).userDao()
+    private val session = SessionManager.getInstance(app)
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -67,10 +69,10 @@ class RegisterViewModel(app: Application) : AndroidViewModel(app) {
                         firstname = firstName,
                         lastname = lastName,
                         email = state.email.trim(),
-                        password = state.password
+                        password = PasswordUtils.hash(state.password)
                     )
                 )
-                SessionManager.loggedInUserId = uid.toInt()
+                session.startSession(uid.toInt())
                 _uiState.update { it.copy(isLoading = false, isRegisterSuccess = true) }
             } catch (e: Exception) {
                 val message = if (e.message?.contains("UNIQUE") == true)
@@ -91,7 +93,7 @@ class RegisterViewModel(app: Application) : AndroidViewModel(app) {
         if (state.email.isBlank()) return "Email is required"
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) return "Enter a valid email"
         if (state.password.isBlank()) return "Password is required"
-        if (state.password.length < 3) return "Password must be at least 3 characters"
+        if (state.password.length < 6) return "Password must be at least 6 characters"
         if (state.password != state.confirmPassword) return "Passwords do not match"
         return null
     }
