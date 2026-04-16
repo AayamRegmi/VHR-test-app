@@ -1,7 +1,7 @@
 package np.com.aayamregmi
 
-
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,14 +15,19 @@ import np.com.aayamregmi.screens.tests.ColorBlindTestScreen
 import np.com.aayamregmi.screens.tests.HearingTestScreen
 import np.com.aayamregmi.screens.tests.LeaderBoardScreen
 import np.com.aayamregmi.screens.tests.ReflexTestScreen
+import np.com.aayamregmi.session.SessionManager
 
 @Composable
 fun AppNavigation() {
+    val context = LocalContext.current
+    val session = SessionManager.getInstance(context)
+    val startDestination = if (session.isLoggedIn) Routes.DASHBOARD else Routes.LOGIN
+
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = Routes.LOGIN
+        startDestination = startDestination
     ) {
         composable(Routes.LOGIN) {
             LoginScreen(
@@ -31,7 +36,12 @@ fun AppNavigation() {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
-                onGoToRegister = { navController.navigate(Routes.REGISTER) }
+                onGoToRegister = { navController.navigate(Routes.REGISTER) },
+                onGuestContinue = {
+                    navController.navigate(Routes.DASHBOARD) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -48,11 +58,11 @@ fun AppNavigation() {
 
         composable(Routes.DASHBOARD) {
             DashboardScreen(
-                onColorBlindClick   = { navController.navigate(Routes.COLOR_BLIND) },
-                onHearingClick      = { navController.navigate(Routes.HEARING) },
-                onReflexClick       = { navController.navigate(Routes.REFLEX) },
-                onLeaderboardClick  = { navController.navigate(Routes.LEADERBOARD) },
-                onProfileClick      = { navController.navigate(Routes.PROFILE) }
+                onColorBlindClick  = { navController.navigate(Routes.COLOR_BLIND) },
+                onHearingClick     = { navController.navigate(Routes.HEARING) },
+                onReflexClick      = { navController.navigate(Routes.REFLEX) },
+                onLeaderboardClick = { navController.navigate(Routes.LEADERBOARD) },
+                onProfileClick     = { navController.navigate(Routes.PROFILE) }
             )
         }
 
@@ -83,22 +93,6 @@ fun AppNavigation() {
         composable(Routes.LEADERBOARD) {
             LeaderBoardScreen(
                 onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Routes.LOGIN) {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Routes.DASHBOARD) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
-                },
-                onGoToRegister = { navController.navigate(Routes.REGISTER) },
-                onGuestContinue = {
-                    navController.navigate(Routes.DASHBOARD) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
-                }
             )
         }
     }
