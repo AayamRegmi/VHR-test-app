@@ -74,13 +74,13 @@ fun AppNavigation() {
 
         composable(Routes.COLOR_BLIND) {
             ColorBlindTestScreen(
-                onFinish = { navController.popBackStack() }
+                onBack = { navController.popBackStack() }
             )
         }
 
         composable(Routes.HEARING) {
             HearingTestScreen(
-                onFinish = { navController.popBackStack() }
+                onBack = { navController.popBackStack() }
             )
         }
 

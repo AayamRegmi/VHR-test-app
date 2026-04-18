@@ -17,19 +17,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
 import np.com.aayamregmi.ui.theme.VHRtestappTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ColorBlindTestScreen(
-    onFinish: () -> Unit
+    onBack: () -> Unit,
+    onFinish: () -> Unit = onBack
 ) {
     var userInput by remember { mutableStateOf("") }
 
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Color Blind Test") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(innerPadding)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -112,6 +132,7 @@ fun ColorBlindTestScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+    } // Scaffold
 }
 
 // ───────────────────────────────────────────────
@@ -122,7 +143,7 @@ fun ColorBlindTestScreen(
 @Composable
 private fun ColorBlindTestScreenPreview() {
     VHRtestappTheme {
-        ColorBlindTestScreen(onFinish = {})
+        ColorBlindTestScreen(onBack = {})
     }
 }
 
@@ -130,6 +151,6 @@ private fun ColorBlindTestScreenPreview() {
 @Composable
 private fun ColorBlindTestScreenDarkPreview() {
     VHRtestappTheme(darkTheme = true) {
-        ColorBlindTestScreen(onFinish = {})
+        ColorBlindTestScreen(onBack = {})
     }
 }

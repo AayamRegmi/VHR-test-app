@@ -1,47 +1,50 @@
 package np.com.aayamregmi.screens.tests
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import np.com.aayamregmi.database.entity.TestType
 import np.com.aayamregmi.ui.theme.VHRtestappTheme
+import np.com.aayamregmi.viewmodel.HistoryEntry
+import np.com.aayamregmi.viewmodel.TestHistoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderBoardScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    vm: TestHistoryViewModel = viewModel()
 ) {
-    // Fake data – replace with real data later (from ViewModel / Firebase / Room)
-    val leaderboard = listOf(
-        LeaderboardEntry(1, "Aayam", 0.18f, "0.18 s"),
-        LeaderboardEntry(2, "Sabin", 0.21f, "0.21 s"),
-        LeaderboardEntry(3, "Rohan", 0.24f, "0.24 s"),
-        LeaderboardEntry(4, "Pratik", 0.27f, "0.27 s"),
-        LeaderboardEntry(5, "Anmol", 0.29f, "0.29 s"),
-        LeaderboardEntry(6, "Nischal", 0.32f, "0.32 s"),
-        LeaderboardEntry(7, "Sushant", 0.35f, "0.35 s"),
-        LeaderboardEntry(8, "Bibek", 0.38f, "0.38 s"),
-    )
+    val entries by vm.entries.collectAsState()
+    val selectedType by vm.selectedType.collectAsState()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) vm.refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reflex Test Leaderboard") },
+                title = { Text("Test History") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -59,34 +62,52 @@ fun LeaderBoardScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            // Podium – Top 3
+            // Test type tabs
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 32.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PodiumItem(rank = 2, name = "Sabin", time = "0.21 s", heightFactor = 0.85f, color = Color(0xFFC0C0C0)) // Silver
-                PodiumItem(rank = 1, name = "Aayam", time = "0.18 s", heightFactor = 1f, color = Color(0xFFFFD700))   // Gold
-                PodiumItem(rank = 3, name = "Rohan", time = "0.24 s", heightFactor = 0.75f, color = Color(0xFFCD7F32)) // Bronze
+                FilterChip(
+                    selected = selectedType == TestType.REFLEX,
+                    onClick = { vm.selectTest(TestType.REFLEX) },
+                    label = { Text("Reflex") },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChip(
+                    selected = selectedType == TestType.HEARING,
+                    onClick = { vm.selectTest(TestType.HEARING) },
+                    label = { Text("Hearing") },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChip(
+                    selected = selectedType == TestType.COLOR_BLINDNESS,
+                    onClick = { vm.selectTest(TestType.COLOR_BLINDNESS) },
+                    label = { Text("Color") },
+                    modifier = Modifier.weight(1f)
+                )
             }
 
-            // Other ranks list
-            Text(
-                text = "Other Rankings",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
-            LazyColumn {
-                itemsIndexed(leaderboard.drop(3)) { index, entry ->
-                    LeaderboardRow(
-                        rank = entry.rank,
-                        name = entry.name,
-                        time = entry.displayTime,
-                        isCurrentUser = entry.name == "Aayam" // highlight current user
+            if (entries.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No history yet.\nComplete a test to see your results here.",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item { Spacer(modifier = Modifier.height(4.dp)) }
+                    itemsIndexed(entries) { index, entry ->
+                        HistoryCard(rank = index + 1, entry = entry)
+                    }
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
                 }
             }
         }
@@ -94,149 +115,43 @@ fun LeaderBoardScreen(
 }
 
 @Composable
-private fun PodiumItem(
-    rank: Int,
-    name: String,
-    time: String,
-    heightFactor: Float,
-    color: Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom,
-        modifier = Modifier.height(180.dp * heightFactor)
-    ) {
-        Text(
-            text = time,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(color.copy(alpha = 0.3f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = name.first().toString(),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = name,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "#$rank",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Box(
-            modifier = Modifier
-                .width(80.dp)
-                .height(20.dp * heightFactor)
-                .background(color)
-        )
-    }
-}
-
-@Composable
-private fun LeaderboardRow(
-    rank: Int,
-    name: String,
-    time: String,
-    isCurrentUser: Boolean = false
-) {
+private fun HistoryCard(rank: Int, entry: HistoryEntry) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isCurrentUser)
-                MaterialTheme.colorScheme.primaryContainer
-            else
-                MaterialTheme.colorScheme.surface
-        )
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 20.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "#$rank",
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.width(48.dp),
-                textAlign = TextAlign.Center
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.width(36.dp)
             )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = name,
-                    fontSize = 16.sp,
-                    fontWeight = if (isCurrentUser) FontWeight.Bold else FontWeight.Normal
+                    text = entry.displayScore,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
-                if (isCurrentUser) {
-                    Text(
-                        text = "You",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Text(
+                    text = entry.displayDate,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-
-            Text(
-                text = time,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
         }
     }
 }
 
-data class LeaderboardEntry(
-    val rank: Int,
-    val name: String,
-    val timeSeconds: Float,
-    val displayTime: String
-)
-
-// ───────────────────────────────────────────────
-// Previews
-// ───────────────────────────────────────────────
-
 @Preview(showBackground = true)
 @Composable
 private fun LeaderBoardScreenPreview() {
-    VHRtestappTheme {
-        LeaderBoardScreen(onBack = {})
-    }
-}
-
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun LeaderBoardScreenDarkPreview() {
-    VHRtestappTheme(darkTheme = true) {
-        LeaderBoardScreen(onBack = {})
-    }
+    VHRtestappTheme { LeaderBoardScreen(onBack = {}) }
 }
