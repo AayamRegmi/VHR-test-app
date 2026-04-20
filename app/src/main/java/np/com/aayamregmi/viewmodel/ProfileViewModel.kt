@@ -49,6 +49,16 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun updateName(firstname: String, lastname: String) {
+        val userId = session.loggedInUserId
+        if (userId == SessionManager.NO_USER) return
+        viewModelScope.launch {
+            val user = userDao.getUserById(userId) ?: return@launch
+            userDao.update(user.copy(firstname = firstname.trim(), lastname = lastname.trim()))
+            load()
+        }
+    }
+
     fun logout() {
         session.clearSession()
     }

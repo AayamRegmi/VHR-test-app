@@ -29,7 +29,62 @@ fun ProfileScreen(
 ) {
     val state by vm.state.collectAsState()
 
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    if (showSettingsDialog) {
+        SettingsDialog(
+            currentFirstName = state.displayName.substringBefore(" "),
+            currentLastName = state.displayName.substringAfter(" ", ""),
+            onDismiss = { showSettingsDialog = false },
+            onSave = { first, last ->
+                vm.updateName(first, last)
+                showSettingsDialog = false
+            }
+        )
+    }
+
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            title = { Text("Privacy Policy") },
+            text = {
+                Text(
+                    "VHR Test App collects only the data you provide during registration " +
+                    "(name, email) and the results of tests you complete. All data is stored " +
+                    "locally on your device and is never shared with third parties. " +
+                    "You can delete your data at any time by uninstalling the app."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyDialog = false }) { Text("OK") }
+            }
+        )
+    }
+
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = { Text("About VHR Test App") },
+            text = {
+                Text(
+                    "VHR Test App v1.0\n\n" +
+                    "A suite of simple health reflex tests:\n" +
+                    "• Color Blindness (Ishihara)\n" +
+                    "• Hearing Test\n" +
+                    "• Reflex Test\n\n" +
+                    "Built with Jetpack Compose and Room."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) { Text("OK") }
+            }
+        )
+    }
+
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
@@ -98,19 +153,19 @@ fun ProfileScreen(
             ProfileOptionItem(
                 icon = Icons.Default.Settings,
                 title = "Settings",
-                onClick = {}
+                onClick = { showSettingsDialog = true }
             )
 
             ProfileOptionItem(
                 icon = Icons.Default.PrivacyTip,
                 title = "Privacy Policy",
-                onClick = {}
+                onClick = { showPrivacyDialog = true }
             )
 
             ProfileOptionItem(
                 icon = Icons.Default.Info,
                 title = "About App",
-                onClick = {}
+                onClick = { showAboutDialog = true }
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -131,6 +186,49 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SettingsDialog(
+    currentFirstName: String,
+    currentLastName: String,
+    onDismiss: () -> Unit,
+    onSave: (String, String) -> Unit
+) {
+    var firstName by remember { mutableStateOf(currentFirstName) }
+    var lastName by remember { mutableStateOf(currentLastName) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Profile") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(firstName, lastName) },
+                enabled = firstName.isNotBlank()
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable
