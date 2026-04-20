@@ -31,6 +31,7 @@ fun ReflexTestScreen(
     val reactionTimeMs by vm.reactionTimeMs.collectAsState()
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Reflex Test") },

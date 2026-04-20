@@ -42,6 +42,7 @@ fun LeaderBoardScreen(
     }
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Test History") },

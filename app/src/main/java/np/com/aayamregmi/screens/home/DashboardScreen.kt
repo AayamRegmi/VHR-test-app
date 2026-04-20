@@ -48,6 +48,7 @@ fun DashboardScreen(
     }
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Dashboard") },

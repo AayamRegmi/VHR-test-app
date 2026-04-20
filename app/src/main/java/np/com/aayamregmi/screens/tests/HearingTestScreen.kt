@@ -29,6 +29,7 @@ fun HearingTestScreen(
     val estimatedAge by vm.estimatedAge.collectAsState()
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Hearing Test") },
@@ -178,7 +179,7 @@ fun HearingTestScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun HearingTestScreenPreview() {
+private fun  HearingTestScreenPreview() {
     VHRtestappTheme {
         HearingTestScreen(onBack = {})
     }
