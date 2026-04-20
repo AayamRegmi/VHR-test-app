@@ -16,20 +16,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.random.Random
+import androidx.lifecycle.viewmodel.compose.viewModel
 import np.com.aayamregmi.ui.theme.VHRtestappTheme
+import np.com.aayamregmi.viewmodel.ReflexState
+import np.com.aayamregmi.viewmodel.ReflexTestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReflexTestScreen(
     onBack: () -> Unit,
-    onFinish: (Long) -> Unit = {}   // returns reaction time in ms
+    vm: ReflexTestViewModel = viewModel()
 ) {
-    var screenState by remember { mutableStateOf(TestState.WaitingToStart) }
-    var startTime by remember { mutableLongStateOf(0L) }
-    var reactionTimeMs by remember { mutableLongStateOf(0L) }
+    val screenState by vm.state.collectAsState()
+    val reactionTimeMs by vm.reactionTimeMs.collectAsState()
 
     Scaffold(
         topBar = {
@@ -71,46 +70,23 @@ fun ReflexTestScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // The reaction zone (starts red, turns green)
             Box(
                 modifier = Modifier
                     .size(300.dp)
                     .clip(MaterialTheme.shapes.extraLarge)
                     .background(
                         when (screenState) {
-                            TestState.WaitingToStart -> Color(0xFFE53935)   // Red
-                            TestState.WaitingForGreen -> Color(0xFFE53935)
-                            TestState.Green -> Color(0xFF43A047)           // Green
-                            TestState.Finished -> Color(0xFF1976D2)        // Blue result
+                            ReflexState.WAITING_TO_START -> Color(0xFFE53935)
+                            ReflexState.WAITING_FOR_GREEN -> Color(0xFFE53935)
+                            ReflexState.GREEN -> Color(0xFF43A047)
+                            ReflexState.FINISHED -> Color(0xFF1976D2)
                         }
                     )
-                    .clickable {
-                        when (screenState) {
-                            TestState.WaitingToStart -> {
-                                screenState = TestState.WaitingForGreen
-                                kotlinx.coroutines.MainScope().launch {
-                                    delay(Random.nextLong(1500, 5000))
-                                    startTime = System.currentTimeMillis()
-                                    screenState = TestState.Green
-                                }
-                            }
-                            TestState.Green -> {
-                                reactionTimeMs = System.currentTimeMillis() - startTime
-                                screenState = TestState.Finished
-                                onFinish(reactionTimeMs)
-                            }
-                            TestState.Finished -> {
-                                // Restart
-                                screenState = TestState.WaitingToStart
-                                reactionTimeMs = 0L
-                            }
-                            else -> {}
-                        }
-                    },
+                    .clickable { vm.onTap() },
                 contentAlignment = Alignment.Center
             ) {
                 when (screenState) {
-                    TestState.WaitingToStart -> {
+                    ReflexState.WAITING_TO_START -> {
                         Text(
                             text = "Tap to Start",
                             fontSize = 28.sp,
@@ -118,7 +94,7 @@ fun ReflexTestScreen(
                             color = Color.White
                         )
                     }
-                    TestState.WaitingForGreen -> {
+                    ReflexState.WAITING_FOR_GREEN -> {
                         Text(
                             text = "Wait...",
                             fontSize = 36.sp,
@@ -126,7 +102,7 @@ fun ReflexTestScreen(
                             color = Color.White
                         )
                     }
-                    TestState.Green -> {
+                    ReflexState.GREEN -> {
                         Text(
                             text = "TAP NOW!",
                             fontSize = 48.sp,
@@ -134,7 +110,7 @@ fun ReflexTestScreen(
                             color = Color.White
                         )
                     }
-                    TestState.Finished -> {
+                    ReflexState.FINISHED -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = "Reaction time",
@@ -142,7 +118,7 @@ fun ReflexTestScreen(
                                 color = Color.White
                             )
                             Text(
-                                text = "${reactionTimeMs} ms",
+                                text = "$reactionTimeMs ms",
                                 fontSize = 56.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White
@@ -154,7 +130,7 @@ fun ReflexTestScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            if (screenState == TestState.Finished) {
+            if (screenState == ReflexState.FINISHED) {
                 Text(
                     text = "Tap the box again to restart",
                     fontSize = 16.sp,
@@ -164,17 +140,6 @@ fun ReflexTestScreen(
         }
     }
 }
-
-private enum class TestState {
-    WaitingToStart,
-    WaitingForGreen,
-    Green,
-    Finished
-}
-
-// ───────────────────────────────────────────────
-// Previews
-// ───────────────────────────────────────────────
 
 @Preview(showBackground = true)
 @Composable

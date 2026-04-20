@@ -68,7 +68,12 @@ fun AppNavigation() {
 
         composable(Routes.PROFILE) {
             ProfileScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
